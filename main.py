@@ -65,6 +65,5 @@ non_terminals, terminals = get_terminals_and_non_terminals(grammatic)
 print("No terminales:", non_terminals)
 print("Terminales:", terminals)
 
-calculate_first(grammatic, first_follow_table)
-
-
+calculate_first(grammatic, terminals, first_follow_table)
+print("\n",first_follow_table)
