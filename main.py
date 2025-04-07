@@ -1,10 +1,26 @@
 import json
+from first import calculate_first
 
 def load_grammatic(filename):
     with open(filename, 'r', encoding='utf-8') as file:
         grammatic = json.load(file)
     return grammatic
 
+def get_terminals_and_non_terminals(grammar):
+    non_terminals = set(grammar.keys())
+    terminals = set()
+    
+    for productions in grammar.values():
+        for production in productions:
+
+            # dividir por los espacios vacios
+            symbols = production.split()
+            for symbol in symbols:
+                # si no es un non_ter ni epsilon,es un terminal
+                if symbol not in non_terminals and symbol != 'ε':
+                    terminals.add(symbol)
+    
+    return non_terminals, terminals
 
 def show_grammatic(grammatic):
 
@@ -44,5 +60,11 @@ show_grammatic(grammatic)
 
 first_follow_table = create_first_follow_table(grammatic)
 print(first_follow_table)
+
+non_terminals, terminals = get_terminals_and_non_terminals(grammatic)
+print("No terminales:", non_terminals)
+print("Terminales:", terminals)
+
+calculate_first(grammatic, first_follow_table)
 
 
