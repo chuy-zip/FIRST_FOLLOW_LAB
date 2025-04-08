@@ -1,5 +1,7 @@
 import json
+import pandas as pd
 from first import calculate_first
+from follow import calculate_follow
 
 def load_grammatic(filename):
     with open(filename, 'r', encoding='utf-8') as file:
@@ -46,24 +48,35 @@ def create_first_follow_table(grammatic):
 
     return table
 
-grammatic = load_grammatic("grammatic.json")
-print(grammatic)
 
-# la forma en la que formateamos la gramatica es la siguiente
-# tenemos un diccionario de la forma: {"E'": ["+ T E'", 'ε'], ...}
-# donde la llave es un no terminal del lado izquierdo de la producción, y la lista son sus producciones
-# entonces "E'": ["+ T E'", 'ε'] se interpreta como E' -> + T E' | ε
-# la razon por la que las expresiones estan separadas por espacios en blancos es para facilitar las operaciones
-# con la gramatica
- 
+# Cargar la gramática
+grammatic = load_grammatic("grammatic.json")
+print("Gramática:")
 show_grammatic(grammatic)
 
+# Crear la tabla para FIRST y FOLLOW
 first_follow_table = create_first_follow_table(grammatic)
-print(first_follow_table)
-
 non_terminals, terminals = get_terminals_and_non_terminals(grammatic)
-print("No terminales:", non_terminals)
+print("\nNo terminales:", non_terminals)
 print("Terminales:", terminals)
 
+# Calcular FIRST
 calculate_first(grammatic, terminals, first_follow_table)
-print("\n",first_follow_table)
+print("\nTabla tras calcular FIRST:")
+print(first_follow_table)
+
+# Calcular FOLLOW
+calculate_follow(grammatic, first_follow_table, non_terminals, terminals)
+print("\nTabla final con FIRST y FOLLOW:")
+print(first_follow_table)
+
+# Mostrar la tabla final en formato tabular
+# Se crea un DataFrame usando los datos de la tabla
+df = pd.DataFrame.from_dict(first_follow_table, orient='index')
+df.index.name = "No Terminal"
+df.reset_index(inplace=True)
+# Convertir los conjuntos en cadenas ordenadas para una mejor visualización
+df['first'] = df['first'].apply(lambda s: ", ".join(sorted(s)))
+df['follow'] = df['follow'].apply(lambda s: ", ".join(sorted(s)))
+print("\nTabla final:")
+print(df.to_string(index=False))
