@@ -23,6 +23,9 @@ def first_of_string(symbols, first_follow_table, terminals):
     result.add("ε")
     return result
 
+"""
+Implementación anterior, se puede ver en el video
+
 def calculate_follow(grammar, first_follow_table, non_terminals, terminals):
 
     # Se asume que el primer no terminal de la gramática es el símbolo inicial.
@@ -38,11 +41,13 @@ def calculate_follow(grammar, first_follow_table, non_terminals, terminals):
         for A in grammar:
             for production in grammar[A]:
                 symbols = production.split()
+
                 for i, B in enumerate(symbols):
                     if B in non_terminals:
                         # Se define beta como la secuencia de símbolos que sigue a B en la producción
-                        print(f"\nCalculando Follow de {B}")
+                        print(f"\nCalculando Follow en {A} -> {production}")
                         beta = symbols[i+1:]
+                        
                         first_beta = first_of_string(beta, first_follow_table, terminals)
 
                         # Caso ii): Agregar FIRST(beta) - {ε} a FOLLOW(B)
@@ -61,4 +66,63 @@ def calculate_follow(grammar, first_follow_table, non_terminals, terminals):
                             print(f"Caso 3: FOLLOW({B}) = {first_follow_table[B]["follow"]}")
                             if len(first_follow_table[B]["follow"]) > before:
                                 changed = True
+    return first_follow_table
+
+"""
+
+#Nueva implementación, misma lógica, no se repite el procedimiento como antes.
+
+def calculate_follow(grammar, first_follow_table, non_terminals, terminals):
+
+    # Se asume que el primer no terminal de la gramática es el símbolo inicial.
+    start_symbol = list(grammar.keys())[0]
+    print(f"\nCalculando Follow de {start_symbol}")
+    first_follow_table[start_symbol]["follow"].add("$")
+    print(f"Caso 1: FOLLOW( {start_symbol} ) = { {'$'} }")
+
+    changed = True
+    while changed:
+        changed = False
+        # Iterar sobre cada producción de la gramática
+        for A in grammar:
+            for production in grammar[A]:
+                symbols = production.split()
+
+                print(f"\nCalculando Follow en {A} -> {production}")
+            
+                if len(symbols) == 2:
+                    # Caso iii): (forma A -> alfaB) Si beta es vacío, se agrega FOLLOW(A) a FOLLOW(B)
+                    B = symbols[1]
+                    before = len(first_follow_table[B]["follow"])
+                    follow = first_follow_table[A]["follow"]
+                    first_follow_table[B]["follow"].update(follow)
+                    print(f"Caso 3: FOLLOW({B}) = FOLLOW({A}) = {first_follow_table[B]["follow"]}")
+                    if len(first_follow_table[B]["follow"]) > before:
+                        changed = True
+
+                elif len(symbols) == 3:
+                    B = symbols[1]
+                    beta = symbols[2]
+                    sym = symbols[2:]
+                    first_beta = first_of_string(sym, first_follow_table, terminals)
+
+                    # Caso ii): (forma A -> alfaBBeta) Agregar FIRST(beta) - {ε} a FOLLOW(B)
+                    before = len(first_follow_table[B]["follow"])
+                    follow = first_beta - {"ε"}
+                    first_follow_table[B]["follow"].update(follow)
+                    print(f"Caso 2: FOLLOW({B}) = FIRST({beta}) = {first_follow_table[B]["follow"]}")
+                   
+                    if "ε" in first_beta:
+                        # Caso iii): (forma A -> alfaBBeta) Si FIRST(beta) contiene ε, se agrega FOLLOW(A) a FOLLOW(B)
+                        before = len(first_follow_table[B]["follow"])
+                        follow = first_follow_table[A]["follow"]
+                        first_follow_table[B]["follow"].update(follow)
+                        print(f"Caso 3: FOLLOW({B}) = FOLLOW({A}) = {first_follow_table[B]["follow"]}")
+                    
+                    if len(first_follow_table[B]["follow"]) > before:
+                        changed = True
+                    
+                else:
+                    print("\nNo aplica para ningún caso.")
+            
     return first_follow_table
